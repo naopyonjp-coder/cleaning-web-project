@@ -39,6 +39,12 @@ button{font:inherit}
 .switch{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:#e6edf5;border-radius:13px;padding:3px;margin-top:8px}
 .switch button{border:0;background:transparent;border-radius:10px;padding:10px 8px;font-weight:900;color:#38516e;cursor:pointer}
 .switch .active.blue{background:var(--blue);color:#fff}.switch .active.green{background:var(--green);color:#fff}
+.floors{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:8px}
+.floors button{min-height:44px;border:1px solid var(--line);border-radius:12px;background:white;color:var(--navy);font-weight:900;cursor:pointer}
+.floors.blue button{border-color:#6bb0f2;color:#0d5ca8}
+.floors.green button{border-color:#69c68a;color:#14743e}
+.floors button:focus-visible{outline:3px solid var(--navy);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 
 .headcard{border-radius:18px;padding:14px;margin:10px 0 12px;color:white;box-shadow:0 8px 22px rgba(20,61,103,.09)}
 .headcard.blue{background:linear-gradient(100deg,#1684ef,#75baff)}
@@ -105,7 +111,7 @@ button{font:inherit}
   </section>
 
   <section id="detail" class="view detail">
-    <div class="sticky">
+    <div id="sticky" class="sticky">
       <div class="navline">
         <button class="back" onclick="goHome()">‹ 戻る</button>
         <div class="title">客室清掃指示書 WEB版</div>
@@ -115,6 +121,12 @@ button{font:inherit}
         <button id="s1" class="blue" onclick="openBuilding('1')">1号館</button>
         <button id="s2" class="green" onclick="openBuilding('2')">2号館</button>
       </div>
+      <nav id="floors" class="floors" aria-label="階数選択">
+        <button onclick="jumpToFloor('1')">1階</button>
+        <button onclick="jumpToFloor('2')">2階</button>
+        <button onclick="jumpToFloor('3')">3階</button>
+        <button onclick="jumpToFloor('4')">4階</button>
+      </nav>
     </div>
 
     <div id="headcard" class="headcard"></div>
@@ -129,14 +141,28 @@ let current = "1";
 function goHome(){
   document.getElementById("detail").classList.remove("active");
   document.getElementById("home").classList.add("active");
-  window.scrollTo(0,0);
+  window.scrollTo({top:0,behavior:"instant"});
 }
 function openBuilding(id){
   current=id;
   document.getElementById("home").classList.remove("active");
   document.getElementById("detail").classList.add("active");
   render();
-  window.scrollTo(0,0);
+  window.scrollTo({top:0,behavior:"instant"});
+}
+function roomFloor(roomNumber){
+  const number=String(roomNumber);
+  return /^\d{4}$/.test(number) ? number[1] : null;
+}
+function jumpToFloor(floor){
+  const first=DATA[current].rooms.find(r=>roomFloor(r.room)===String(floor));
+  if(!first) return;
+  const room=document.getElementById(`room-${first.room}`);
+  const header=document.getElementById("sticky");
+  if(!room || !header) return;
+  // Measure the actual header height, including wrapped text and floor buttons.
+  const top=window.scrollY+room.getBoundingClientRect().top-header.getBoundingClientRect().height-8;
+  window.scrollTo({top:Math.max(0,top),behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
 }
 function noteClass(notes){
   if(notes.some(n=>n.includes("N.C") || n==="PD" || n==="CK")) return "notes yellow";
@@ -145,7 +171,7 @@ function noteClass(notes){
 function card(r,theme){
   const diff=r.mouth!==r.slippers;
   return `
-  <article class="room ${theme}">
+  <article id="room-${r.room}" class="room ${theme}">
     <div class="rtop">
       <div>
         <div class="roomno">${r.room}</div>
@@ -175,6 +201,7 @@ function card(r,theme){
 }
 function render(){
   const d=DATA[current];
+  document.getElementById("floors").className=`floors ${d.theme}`;
   document.getElementById("s1").classList.toggle("active", current==="1");
   document.getElementById("s2").classList.toggle("active", current==="2");
 
