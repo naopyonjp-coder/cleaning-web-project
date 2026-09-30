@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f4f7fb">
 <title>客室清掃指示書 WEB版（テスト）</title>
@@ -16,6 +17,14 @@ html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif}
 button{font:inherit}
+.import-button{width:100%;min-height:48px;margin-top:18px;border:0;border-radius:14px;background:var(--navy);color:white;font-weight:850;cursor:pointer}
+.import-content{margin-top:12px}.import-intro,.import-error{font-size:13px;line-height:1.6;padding:12px;border-radius:12px;background:var(--yellow-soft);color:var(--yellow)}
+.import-error:empty{display:none}.photo-preview{display:block;max-width:100%;max-height:65vh;object-fit:contain;margin:12px auto}
+.editor-room{margin-top:10px;border:1px solid var(--line);border-radius:16px;background:white;padding:12px}
+.editor-room summary{min-height:44px;font-size:20px;font-weight:900;cursor:pointer}
+.edit-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+.edit-fields label{min-width:0;font-size:13px;font-weight:800}.edit-fields input,.edit-fields select,.edit-fields textarea{display:block;width:100%;min-width:0;min-height:44px;margin-top:5px;font:inherit;border:1px solid var(--line);border-radius:9px;padding:8px;background:white;color:var(--ink)}
+.edit-fields .wide{grid-column:1/-1}.edit-fields textarea{min-height:70px}.confirm-check{display:block;margin:16px 0;line-height:1.6}.confirm-check input{width:22px;height:22px;vertical-align:middle}
 .today{display:block;margin-top:14px;font-size:17px;font-weight:850;color:var(--navy)}
 .languages{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
 .languages button{min-height:44px;border:1px solid var(--line);border-radius:12px;background:white;color:var(--navy);font-weight:850;cursor:pointer}
@@ -118,10 +127,16 @@ button{font:inherit}
           <small>2101〜2407</small>
         </button>
       </div>
+      <button class="import-button" onclick="openImport()" data-i18n="importTitle">指示書を取り込む</button>
       <div class="homefoot" data-i18n="chooseBuilding">見たい号館をタップしてください</div>
     </div>
   </section>
 
+  <section id="importer" class="view">
+    <div class="navline"><button class="back" onclick="goHome()" data-i18n="back">‹ 戻る</button><h2 data-i18n="importTitle">指示書を取り込む</h2></div>
+    <div class="switch"><button id="import1" onclick="selectImportBuilding('1')" data-i18n="building1">1号館</button><button id="import2" onclick="selectImportBuilding('2')" data-i18n="building2">2号館</button></div>
+    <div id="import-content" class="import-content"></div>
+  </section>
   <section id="detail" class="view detail">
     <div id="sticky" class="sticky">
       <div class="navline">
@@ -174,6 +189,7 @@ function translateType(type){
   return [...type].map(c=>letters[c]||c).join(' ');
 }
 function translateNote(note){
+  if(typeof note==='object') return escapeHtml(note[language]||'');
   if(language==='ja') return note;
   return note.replace(/子供セット/g,'बालबालिकाको सामग्री सेट')
     .replace(/ベビーベッド/g,'शिशुको ओछ्यान').replace(/オムツ用ゴミ箱/g,'डाइपर फाल्ने डब्बा')
@@ -205,27 +221,37 @@ function updateToday(){
 }
 function applyLanguage(){
   document.documentElement.lang=language;
-  document.title=`${t('title')} (${t('test')})`;
+  document.title=`${t('title')} (${t(hasLocalData()?'session':'test')})`;
   document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
   document.querySelectorAll('[data-i18n-aria]').forEach(el=>{el.setAttribute('aria-label',t(el.dataset.i18nAria));});
   for(const lang of ['ja','ne']) document.getElementById('lang-'+lang).setAttribute('aria-pressed',String(lang===language));
+  if(hasLocalData()){
+    document.querySelector('[data-i18n="notice"]').textContent=t('sessionNotice');
+    document.querySelector('[data-i18n="subtitle"]').textContent=t('session');
+  }
   updateToday();
 }
 function setLanguage(lang){
+  const importing=document.getElementById("importer").classList.contains("active");
+  if(importing) saveDraft();
   if(lang!=='ja'&&lang!=='ne') return;
   language=lang;
   try {localStorage.setItem('cleaning-web-language',language);} catch (_) {}
   applyLanguage();
+  if(importing) renderImporter();
   if(document.getElementById('detail').classList.contains('active')) render();
 }
 
 function goHome(){
+  if(document.getElementById("importer").classList.contains("active")) saveDraft();
   document.getElementById("detail").classList.remove("active");
+  document.getElementById("importer").classList.remove("active");
   document.getElementById("home").classList.add("active");
   window.scrollTo({top:0,behavior:"instant"});
 }
 function openBuilding(id){
   current=id;
+  document.getElementById("importer").classList.remove("active");
   document.getElementById("home").classList.remove("active");
   document.getElementById("detail").classList.add("active");
   render();
@@ -246,13 +272,13 @@ function jumpToFloor(floor){
   window.scrollTo({top:Math.max(0,top),behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
 }
 function noteClass(notes){
-  if(notes.some(n=>n.includes("N.C") || n==="PD" || n==="CK")) return "notes yellow";
+  if(notes.some(n=>typeof n==="string" && (n.includes("N.C") || n==="PD" || n==="CK"))) return "notes yellow";
   return "notes";
 }
-function card(r,theme){
+function card(r,theme,prefix="room"){
   const diff=r.mouth!==r.slippers;
   return `
-  <article id="room-${r.room}" class="room ${theme}">
+  <article id="${prefix}-${r.room}" class="room ${theme}">
     <div class="rtop">
       <div>
         <div class="roomno">${r.room}</div>
@@ -291,7 +317,7 @@ function render(){
   hc.innerHTML=`
     <div class="headrow">
       <div class="bname">${t("building"+current)}</div>
-      <div class="date">${language==="ne"?d.date.replace("（テスト）"," (परीक्षण)"):d.date}</div>
+      <div class="date">${escapeHtml(language==="ne"?d.date.replace("（テスト）"," (परीक्षण)"):d.date)} · ${t(d.source==="local"?"session":"test")}</div>
     </div>
     <div class="stats">
       <span class="stat out">${t("out")} ${d.summary.out}</span>
@@ -300,6 +326,107 @@ function render(){
     </div>`;
   document.getElementById("rooms").innerHTML=d.rooms.map(r=>card(r,d.theme)).join("");
 }
+Object.assign(TEXT.ja,{
+  importTitle:'指示書を取り込む', importHelp:'写真はこの画面内だけで扱います。自動文字読み取りは未対応です。写真を見ながら全室の値を入力し、不明な項目は空欄のまま確認してください。確定するまでカードに反映しません。',
+  choosePhoto:'写真を選ぶ・撮影する', noPhoto:'この号館の写真を選択してください。', imageError:'写真を表示できません。JPEG・PNGなどの画像を選び直してください。', imageLimit:'20MB以下の画像を選んでください。',
+  instructionDate:'指示書の日付', noteJa:'備考（日本語）', noteNe:'備考（ネパール語）',
+  review:'入力内容を確認する', editAgain:'入力画面へ戻る', applyImport:'確認済みの内容をカードに反映', agree:'写真と全室の人数・数量・備考を照合しました。読み取れない項目を推測で確定していません。',
+  missing:'写真・日付・集計・全室の数値とインを入力してください。0も明示入力してください。備考は日本語とネパール語の両方が必要です。',
+  checkRequired:'照合確認にチェックしてください。', reviewHelp:'以下は確定前の確認表示です。写真と照合し、誤りがあれば入力画面へ戻って修正してください。',
+  session:'このページ内の確認済みデータ',sessionNotice:'取り込んだ指示書はこのページ内だけで使用します。写真と入力内容は外部送信・保存されず、再読み込みやページを閉じると消えます。未登録の号館はテストデータです。',
+  unset:'未確認', calculated:'お口・スリッパ・子供セットは確認済み人数から既存ルールで計算し、歯ブラシ・サムエ・タオルは定数です。自由記入の備考は両言語で入力します。',
+  photoAlt:'この号館の指示書の写真', kids:'子供セット'
+});
+Object.assign(TEXT.ne,{
+  importTitle:'सफाइ निर्देशन समावेश गर्नुहोस्',importHelp:'फोटो यस पृष्ठभित्र मात्र प्रयोग हुन्छ। स्वचालित अक्षर पहिचान उपलब्ध छैन। फोटो हेरेर सबै कोठाको विवरण भर्नुहोस्। नबुझिएको विवरण खाली राख्नुहोस्। पुष्टि नगरेसम्म कार्ड परिवर्तन हुँदैन।',
+  choosePhoto:'फोटो छान्नुहोस् वा खिच्नुहोस्',noPhoto:'यस भवनको फोटो छान्नुहोस्।',imageError:'फोटो देखाउन सकिएन। अर्को फोटो छान्नुहोस्।',imageLimit:'20 मेगाबाइटसम्मको फोटो छान्नुहोस्।',
+  instructionDate:'निर्देशनको मिति',noteJa:'टिप्पणी (जापानी)',noteNe:'टिप्पणी (नेपाली)',
+  review:'भरेको विवरण जाँच्नुहोस्',editAgain:'सम्पादनमा फर्कनुहोस्',applyImport:'पुष्टि गरिएको विवरण कार्डमा देखाउनुहोस्',agree:'मैले फोटोसँग सबै कोठाका व्यक्ति संख्या, सामग्री र टिप्पणी जाँचेको छु। नबुझिएको विवरण अनुमान गरेर पुष्टि गरेको छैन।',
+  missing:'फोटो, मिति, कुल संख्या र सबै कोठाका संख्या तथा आगमन भर्नुहोस्। 0 पनि भर्नुहोस्। टिप्पणी दुवै भाषामा आवश्यक छ।',
+  checkRequired:'जाँचको पुष्टि गर्नुहोस्।',reviewHelp:'यो पुष्टि गर्नुअघिको विवरण हो। फोटोसँग मिलाउनुहोस्। गलत भए सम्पादनमा फर्केर सच्याउनुहोस्।',
+  session:'यस पृष्ठको पुष्टि गरिएको विवरण',sessionNotice:'समावेश गरिएको निर्देशन यस पृष्ठभित्र मात्र प्रयोग हुन्छ। फोटो र विवरण बाहिर पठाइँदैन वा सुरक्षित गरिँदैन। पृष्ठ पुनः खोल्दा वा बन्द गर्दा मेटिन्छ। दर्ता नभएको भवनमा परीक्षण डेटा हुन्छ।',
+  unset:'पुष्टि नभएको',calculated:'मुख सफाइ सामग्री, चप्पल र बालबालिकाको सेट पुष्टि गरिएको व्यक्तिसंख्याबाट नियमअनुसार गणना हुन्छ। ब्रस, समुए र तौलिया मानक संख्याअनुसार हुन्छ। टिप्पणी दुवै भाषामा भर्नुहोस्।',photoAlt:'यस भवनको निर्देशनको फोटो',kids:'बालबालिकाको सामग्री सेट'
+});
+let importBuilding='1';
+const drafts={};
+let pendingImport=null;
+function hasLocalData(){return Object.values(DATA).some(b=>b.source==='local');}
+function escapeHtml(value){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function getDraft(id){
+  if(!drafts[id]) drafts[id]={photo:'',date:'',out:'',stay:'',ck:'',rooms:DATA[id].rooms.map(r=>({room:r.room,type:r.type,const:r.const,in:'',big:'',mid:'',small:'',infant:'',amenities:'',noteJa:'',noteNe:''}))};
+  return drafts[id];
+}
+function saveDraft(){
+  const form=document.getElementById('import-form');
+  if(!form || !form.elements) return;
+  const draft=getDraft(importBuilding);
+  for(const key of ['date','out','stay','ck']) {const input=form.elements.namedItem(key);if(input) draft[key]=input.value;}
+  for(const r of draft.rooms) for(const key of ['in','big','mid','small','infant','amenities','noteJa','noteNe']) {const input=form.elements.namedItem(r.room+'-'+key);if(input) r[key]=input.value;}
+}
+function openImport(){
+  document.getElementById('home').classList.remove('active');document.getElementById('detail').classList.remove('active');
+  document.getElementById('importer').classList.add('active');renderImporter();window.scrollTo({top:0,behavior:'instant'});
+}
+function selectImportBuilding(id){saveDraft();importBuilding=id;pendingImport=null;renderImporter();}
+function editField(name,key,value,type='number'){
+  return `<label>${t(key)}<input name="${name}" type="${type}" ${type==='number'?'min="0" step="1" inputmode="numeric"':''} value="${escapeHtml(value)}"></label>`;
+}
+function photoMarkup(d){return d.photo?`<img class="photo-preview" src="${d.photo}" alt="${t('photoAlt')}" onerror="photoFailed()">`:`<p>${t('noPhoto')}</p>`;}
+function renderImporter(){
+  pendingImport=null;
+  const d=getDraft(importBuilding);
+  for(const id of ['1','2']) document.getElementById('import'+id).className=id===importBuilding?'active '+DATA[id].theme:'';
+  document.getElementById('import-content').innerHTML=`<p class="import-intro">${t('importHelp')}</p>
+    <input id="photo-file" type="file" accept="image/*" hidden onchange="choosePhoto(event)">
+    <button class="import-button" onclick="document.getElementById('photo-file').click()">${t('choosePhoto')}</button>${photoMarkup(d)}
+    <p class="import-intro">${t('calculated')}</p><form id="import-form" onsubmit="event.preventDefault();reviewImport()" novalidate>
+    <div class="edit-fields">${editField('date','instructionDate',d.date,'date')}${['out','stay','ck'].map(k=>editField(k,k,d[k])).join('')}</div>
+    ${d.rooms.map(r=>`<details class="editor-room"><summary>${r.room} · ${t('type')} ${translateType(r.type)} · ${t('capacity')} ${r.const}</summary><div class="edit-fields">
+      <label>${t('checkIn')}<select name="${r.room}-in"><option value="">${t('unset')}</option><option value="○" ${r.in==='○'?'selected':''}>${t('yes')}</option><option value="－" ${r.in==='－'?'selected':''}>${t('no')}</option></select></label>
+      ${[['big','adult'],['mid','middle'],['small','child'],['infant','infant'],['amenities','amenities']].map(([key,label])=>editField(r.room+'-'+key,label,r[key])).join('')}
+      <label class="wide">${t('noteJa')}<textarea name="${r.room}-noteJa" lang="ja">${escapeHtml(r.noteJa)}</textarea></label>
+      <label class="wide">${t('noteNe')}<textarea name="${r.room}-noteNe" lang="ne">${escapeHtml(r.noteNe)}</textarea></label></div></details>`).join('')}
+    <p id="import-error" class="import-error" role="alert"></p><button class="import-button" type="submit">${t('review')}</button></form>`;
+}
+function showImportError(key){document.getElementById('import-error').textContent=t(key);}
+function choosePhoto(event){
+  saveDraft();const file=event.target.files[0];if(!file) return;
+  if(!file.type.startsWith('image/')) {showImportError('imageError');return;}
+  if(file.size>20*1024*1024){showImportError('imageLimit');return;}
+  const d=getDraft(importBuilding);if(d.photo) URL.revokeObjectURL(d.photo);d.photo=URL.createObjectURL(file);
+  pendingImport=null;renderImporter();
+}
+function photoFailed(){const d=getDraft(importBuilding);if(d.photo) URL.revokeObjectURL(d.photo);d.photo='';renderImporter();showImportError('imageError');}
+function checkedNumber(value){return /^\d+$/.test(String(value)) && Number.isSafeInteger(Number(value))?Number(value):null;}
+function buildImport(d,id){
+  if(!d.photo||!/^\d{4}-\d{2}-\d{2}$/.test(d.date)||new Date(d.date+'T00:00:00Z').toISOString().slice(0,10)!==d.date) throw new Error('missing');
+  const summary={};for(const k of ['out','stay','ck']) {summary[k]=checkedNumber(d[k]);if(summary[k]===null) throw new Error('missing');}
+  const rooms=d.rooms.map(r=>{
+    if(r.in!=='○'&&r.in!=='－') throw new Error('missing');
+    const counts={};for(const k of ['big','mid','small','infant','amenities']) {counts[k]=checkedNumber(r[k]);if(counts[k]===null) throw new Error('missing');}
+    const ja=r.noteJa.trim(),ne=r.noteNe.trim();if(Boolean(ja)!==Boolean(ne)) throw new Error('missing');
+    const kids=counts.mid+counts.small+counts.infant;
+    const mouth=r.in==='○'?counts.big+counts.mid+counts.small:r.const;
+    const notes=kids?[{ja:`子供セット ×${kids}`,ne:`बालबालिकाको सामग्री सेट ×${kids}`}]:[];
+    if(ja) notes.push({ja,ne});
+    return {room:r.room,type:r.type,const:r.const,in:r.in,...counts,mouth,slippers:r.in==='○'?mouth+counts.infant:r.const,toothbrush:r.const,samue:r.const,towel:r.const,notes};
+  });
+  return {name:DATA[id].name,theme:DATA[id].theme,date:d.date,summary,rooms,source:'local'};
+}
+function reviewImport(){
+  saveDraft();try{pendingImport=buildImport(getDraft(importBuilding),importBuilding);}catch(_){showImportError('missing');return;}
+  document.getElementById('import-content').innerHTML=`<p class="import-intro">${t('reviewHelp')}</p>${photoMarkup(getDraft(importBuilding))}<button class="back" onclick="pendingImport=null;renderImporter()">${t('editAgain')}</button>
+    <h3>${t('building'+importBuilding)} · ${escapeHtml(pendingImport.date)}</h3><p>${t('out')} ${pendingImport.summary.out} · ${t('stay')} ${pendingImport.summary.stay} · ${t('ck')} ${pendingImport.summary.ck}</p>
+    <div class="rooms">${pendingImport.rooms.map(r=>card(r,pendingImport.theme,"review-room")).join('')}</div>
+    <label class="confirm-check"><input id="import-agree" type="checkbox"> ${t('agree')}</label><p id="import-error" class="import-error" role="alert"></p>
+    <button class="import-button" onclick="applyImport()">${t('applyImport')}</button>`;window.scrollTo({top:0,behavior:'instant'});
+}
+function applyImport(){
+  if(!pendingImport) return;
+  if(!document.getElementById('import-agree').checked){showImportError('checkRequired');return;}
+  DATA[importBuilding]=pendingImport;pendingImport=null;applyLanguage();openBuilding(importBuilding);
+}
+
 applyLanguage();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden) updateToday();});
 window.addEventListener('focus',updateToday);
