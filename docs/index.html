@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f4f7fb">
+<title>客室清掃指示書 WEB版（テスト）</title>
+<style>
+:root{
+  --navy:#0c2d55;--ink:#12243d;--muted:#6c7d92;--line:#dfe8f2;--bg:#f4f7fb;
+  --blue:#1684ef;--blue-soft:#e8f3ff;--green:#1fa65a;--green-soft:#e7f7ec;
+  --pink:#c92f69;--pink-soft:#ffe8f0;--yellow:#7b5d00;--yellow-soft:#fff3c5;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif}
+button{font:inherit}
+.demo-notice{margin:0;padding:10px;border:1px solid #f4e0a0;border-radius:12px;background:var(--yellow-soft);color:var(--yellow);font-size:12px;line-height:1.5}
+.headrow{flex-wrap:wrap}
+.app{max-width:620px;margin:auto;min-height:100vh;padding:12px 12px 28px}
+.view{display:none}.view.active{display:block}
+.top{padding:28px 4px 18px;text-align:center}
+.top h1{margin:0;color:var(--navy);font-size:28px;font-weight:950;letter-spacing:.02em}
+.top .sub{margin-top:5px;color:#56708e;font-size:14px;font-weight:800}
+.pick{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:26px}
+.pickbtn{border:0;border-radius:22px;padding:22px 14px;box-shadow:0 10px 26px rgba(31,65,104,.10);
+  font-weight:950;font-size:23px;text-align:left;cursor:pointer}
+.pickbtn.blue{background:linear-gradient(145deg,#eaf5ff,#d8ecff);color:#1378d7}
+.pickbtn.green{background:linear-gradient(145deg,#eefaf2,#d9f1e1);color:#158b4b}
+.pickbtn span{display:block}.pickbtn small{font-size:12px;margin-top:7px;color:#5e7188}
+.arrow{float:right;font-size:28px}
+.homefoot{margin-top:24px;text-align:center;color:#8390a0;font-size:12px}
+
+.sticky{position:sticky;top:0;z-index:20;background:rgba(244,247,251,.94);backdrop-filter:blur(12px);padding:7px 0 9px}
+.navline{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.back{border:0;background:transparent;color:#1678dc;font-weight:900;padding:9px 4px;cursor:pointer}
+.title{font-weight:950;color:var(--navy)}
+.switch{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:#e6edf5;border-radius:13px;padding:3px;margin-top:8px}
+.switch button{border:0;background:transparent;border-radius:10px;padding:10px 8px;font-weight:900;color:#38516e;cursor:pointer}
+.switch .active.blue{background:var(--blue);color:#fff}.switch .active.green{background:var(--green);color:#fff}
+
+.headcard{border-radius:18px;padding:14px;margin:10px 0 12px;color:white;box-shadow:0 8px 22px rgba(20,61,103,.09)}
+.headcard.blue{background:linear-gradient(100deg,#1684ef,#75baff)}
+.headcard.green{background:linear-gradient(100deg,#1fa65a,#72c991)}
+.headrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.bname{font-size:24px;font-weight:950}.date{font-size:13px;font-weight:850}
+.stats{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.stat{background:rgba(255,255,255,.92);border-radius:999px;padding:5px 9px;font-size:11px;font-weight:950;color:#31435a}
+.stat.out{color:#c32d68}.stat.stay{color:#1471c4}.stat.ck{color:#7e6200}
+
+.rooms{display:flex;flex-direction:column;gap:11px}
+.room{background:#fff;border:1px solid var(--line);border-radius:19px;padding:14px;box-shadow:0 5px 16px rgba(27,61,98,.055)}
+.room.blue{border-left:5px solid #6bb0f2}.room.green{border-left:5px solid #69c68a}
+.rtop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+.roomno{font-size:28px;font-weight:950;line-height:1}
+.room.blue .roomno{color:#0d5ca8}.room.green .roomno{color:#14743e}
+.meta{margin-top:5px;color:#718198;font-size:12px;font-weight:800}
+.inpill{border-radius:999px;padding:6px 10px;font-size:12px;font-weight:950}
+.inpill.on{background:#e5f3ff;color:#116fc6}.inpill.off{background:#f0f2f5;color:#7b8794}
+
+.people{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px}
+.pbox{background:#f7f9fc;border:1px solid #edf1f5;border-radius:12px;text-align:center;padding:8px 3px}
+.pbox span{display:block;color:#718198;font-size:10px;font-weight:850;margin-bottom:2px}.pbox b{font-size:20px}
+
+.items{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.item{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f8fafc;border:1px solid #edf1f5;border-radius:12px;padding:9px 10px}
+.item span{font-size:12px;color:#64758c;font-weight:850}.item b{font-size:18px}
+.item.wide{grid-column:1/-1}
+.mouthdiff{background:#fff8dd;border-color:#f4e0a0}
+
+.notes{margin-top:10px;border-radius:13px;padding:10px 12px;background:var(--pink-soft);color:var(--pink);font-size:13px;font-weight:900;line-height:1.55}
+.notes.yellow{background:var(--yellow-soft);color:var(--yellow)}
+.notes ul{margin:0;padding-left:18px}
+.empty{display:none}
+@media(max-width:390px){
+  .app{padding:9px 9px 24px}.top h1{font-size:25px}.pickbtn{font-size:20px;padding:20px 12px}
+  .room{padding:12px}.roomno{font-size:26px}.item{padding:8px 9px}
+}
+@media print{
+  body{background:white}.app{max-width:none}.sticky,.home{display:none!important}.detail{display:block!important}
+  .room{break-inside:avoid;box-shadow:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <p class="demo-notice" role="note">表示確認用の架空データです。実際の清掃には使用しないでください。</p>
+  <section id="home" class="view active home">
+    <div class="top">
+      <h1>客室清掃指示書</h1>
+      <div class="sub">WEB版 · テストデータ</div>
+      <div class="pick">
+        <button class="pickbtn blue" onclick="openBuilding('1')">
+          <span>1号館 <span class="arrow">›</span></span>
+          <small>1101〜1405</small>
+        </button>
+        <button class="pickbtn green" onclick="openBuilding('2')">
+          <span>2号館 <span class="arrow">›</span></span>
+          <small>2101〜2407</small>
+        </button>
+      </div>
+      <div class="homefoot">見たい号館をタップしてください</div>
+    </div>
+  </section>
+
+  <section id="detail" class="view detail">
+    <div class="sticky">
+      <div class="navline">
+        <button class="back" onclick="goHome()">‹ 戻る</button>
+        <div class="title">客室清掃指示書 WEB版</div>
+        <div style="width:44px"></div>
+      </div>
+      <div class="switch">
+        <button id="s1" class="blue" onclick="openBuilding('1')">1号館</button>
+        <button id="s2" class="green" onclick="openBuilding('2')">2号館</button>
+      </div>
+    </div>
+
+    <div id="headcard" class="headcard"></div>
+    <div id="rooms" class="rooms"></div>
+  </section>
+</div>
+
+<script>
+const DATA = {"1":{"name":"1号館","theme":"blue","date":"2099/1/1（テスト）","summary":{"out":17,"stay":6,"ck":1},"rooms":[{"room":"1101","type":"VA","const":4,"in":"－","big":0,"mid":0,"small":0,"infant":0,"mouth":4,"slippers":4,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["N.C（テスト）"]},{"room":"1102","type":"VB","const":5,"in":"○","big":1,"mid":0,"small":1,"infant":0,"mouth":2,"slippers":2,"toothbrush":5,"amenities":3,"samue":5,"towel":5,"notes":["CK","子供セット ×1"]},{"room":"1103","type":"VA","const":4,"in":"○","big":1,"mid":0,"small":0,"infant":1,"mouth":1,"slippers":2,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["PD","ベビーベッド ×1（テスト）","子供セット ×1"]},{"room":"1104","type":"VB","const":5,"in":"○","big":1,"mid":1,"small":0,"infant":0,"mouth":2,"slippers":2,"toothbrush":5,"amenities":3,"samue":5,"towel":5,"notes":["子供セット ×1"]},{"room":"1105","type":"VA","const":4,"in":"－","big":0,"mid":0,"small":0,"infant":0,"mouth":4,"slippers":4,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["N.C（テスト）"]},{"room":"1106","type":"VB","const":5,"in":"○","big":1,"mid":0,"small":0,"infant":1,"mouth":1,"slippers":2,"toothbrush":5,"amenities":3,"samue":5,"towel":5,"notes":["ベビーベッド ×1（テスト）","子供セット ×1"]},{"room":"1201","type":"VAU","const":4,"in":"○","big":1,"mid":1,"small":0,"infant":0,"mouth":2,"slippers":2,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["子供セット ×1"]},{"room":"1202","type":"VB","const":5,"in":"○","big":1,"mid":0,"small":1,"infant":0,"mouth":2,"slippers":2,"toothbrush":5,"amenities":3,"samue":5,"towel":5,"notes":["子供セット ×1"]},{"room":"1203","type":"VA","const":4,"in":"－","big":0,"mid":0,"small":0,"infant":0,"mouth":4,"slippers":4,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["N.C（テスト）"]},{"room":"1204","type":"VB","const":5,"in":"○","big":1,"mid":1,"small":0,"infant":0,"mouth":2,"slippers":2,"toothbrush":5,"amenities":3,"samue":5,"towel":5,"notes":["子供セット ×1"]},{"room":"1205","type":"VA","const":4,"in":"○","big":1,"mid":0,"small":1,"infant":0,"mouth":2,"slippers":2,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["子供セット ×1"]},{"room":"1206","type":"VF1","const":6,"in":"○","big":1,"mid":0,"small":0,"infant":1,"mouth":1,"slippers":2,"toothbrush":6,"amenities":3,"samue":6,"towel":6,"notes":["ベビーベッド ×1（テスト）","子供セット ×1"]},{"room":"1301","type":"VA","const":4,"in":"－","big":0,"mid":0,"small":0,"infant":0,"mouth":4,"slippers":4,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["N.C（テスト）"]},{"room":"1302","type":"VB","const":5,"in":"○","big":1,"mid":0,"small":1,"infant":0,"mouth":2,"slippers":2,"toothbrush":5,"amenities":3,"samue":5,"towel":5,"notes":["子供セット ×1"]},{"room":"1303","type":"VA","const":4,"in":"○","big":1,"mid":0,"small":0,"infant":1,"mouth":1,"slippers":2,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["ベビーベッド ×1（テスト）","子供セット ×1"]},{"room":"1304","type":"VB","const":5,"in":"○","big":1,"mid":1,"small":0,"infant":0,"mouth":2,"slippers":2,"toothbrush":5,"amenities":3,"samue":5,"towel":5,"notes":["子供セット ×1"]},{"room":"1305","type":"VA","const":4,"in":"－","big":0,"mid":0,"small":0,"infant":0,"mouth":4,"slippers":4,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["N.C（テスト）"]},{"room":"1306","type":"VF1","const":6,"in":"○","big":1,"mid":0,"small":0,"infant":1,"mouth":1,"slippers":2,"toothbrush":6,"amenities":3,"samue":6,"towel":6,"notes":["ベビーベッド ×1（テスト）","子供セット ×1"]},{"room":"1401","type":"VSS","const":5,"in":"○","big":1,"mid":1,"small":0,"infant":0,"mouth":2,"slippers":2,"toothbrush":5,"amenities":3,"samue":5,"towel":5,"notes":["子供セット ×1"]},{"room":"1402","type":"VA","const":4,"in":"○","big":1,"mid":0,"small":1,"infant":0,"mouth":2,"slippers":2,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["子供セット ×1"]},{"room":"1403","type":"VB","const":5,"in":"－","big":0,"mid":0,"small":0,"infant":0,"mouth":5,"slippers":5,"toothbrush":5,"amenities":3,"samue":5,"towel":5,"notes":["N.C（テスト）"]},{"room":"1404","type":"VA","const":4,"in":"○","big":1,"mid":1,"small":0,"infant":0,"mouth":2,"slippers":2,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["子供セット ×1"]},{"room":"1405","type":"VF1","const":6,"in":"○","big":1,"mid":0,"small":1,"infant":0,"mouth":2,"slippers":2,"toothbrush":6,"amenities":3,"samue":6,"towel":6,"notes":["子供セット ×1"]}]},"2":{"name":"2号館","theme":"green","date":"2099/1/1（テスト）","summary":{"out":20,"stay":7,"ck":1},"rooms":[{"room":"2101","type":"VB","const":5,"in":"－","big":0,"mid":0,"small":0,"infant":0,"mouth":5,"slippers":5,"toothbrush":5,"amenities":3,"samue":5,"towel":5,"notes":["N.C（テスト）"]},{"room":"2102","type":"VA","const":4,"in":"○","big":1,"mid":0,"small":1,"infant":0,"mouth":2,"slippers":2,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["CK","子供セット ×1"]},{"room":"2103","type":"VB","const":5,"in":"○","big":1,"mid":0,"small":0,"infant":1,"mouth":1,"slippers":2,"toothbrush":5,"amenities":3,"samue":5,"towel":5,"notes":["PD","ベビーベッド ×1（テスト）","子供セット ×1"]},{"room":"2104","type":"VA","const":4,"in":"○","big":1,"mid":1,"small":0,"infant":0,"mouth":2,"slippers":2,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["子供セット ×1"]},{"room":"2105","type":"VB","const":5,"in":"－","big":0,"mid":0,"small":0,"infant":0,"mouth":5,"slippers":5,"toothbrush":5,"amenities":3,"samue":5,"towel":5,"notes":["N.C（テスト）"]},{"room":"2106","type":"VJS","const":2,"in":"○","big":1,"mid":0,"small":0,"infant":0,"mouth":1,"slippers":1,"toothbrush":2,"amenities":1,"samue":2,"towel":2,"notes":[]},{"room":"2107","type":"VF2","const":6,"in":"○","big":1,"mid":1,"small":0,"infant":0,"mouth":2,"slippers":2,"toothbrush":6,"amenities":3,"samue":6,"towel":6,"notes":["子供セット ×1"]},{"room":"2201","type":"VAU","const":4,"in":"○","big":1,"mid":0,"small":1,"infant":0,"mouth":2,"slippers":2,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["子供セット ×1"]},{"room":"2202","type":"VA","const":4,"in":"－","big":0,"mid":0,"small":0,"infant":0,"mouth":4,"slippers":4,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["N.C（テスト）"]},{"room":"2203","type":"VB","const":5,"in":"○","big":1,"mid":1,"small":0,"infant":0,"mouth":2,"slippers":2,"toothbrush":5,"amenities":3,"samue":5,"towel":5,"notes":["子供セット ×1"]},{"room":"2204","type":"VP","const":4,"in":"○","big":1,"mid":0,"small":1,"infant":0,"mouth":2,"slippers":2,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["子供セット ×1"]},{"room":"2205","type":"VP","const":4,"in":"○","big":1,"mid":0,"small":0,"infant":1,"mouth":1,"slippers":2,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["ベビーベッド ×1（テスト）","子供セット ×1"]},{"room":"2206","type":"VPS","const":5,"in":"－","big":0,"mid":0,"small":0,"infant":0,"mouth":5,"slippers":5,"toothbrush":5,"amenities":3,"samue":5,"towel":5,"notes":["N.C（テスト）"]},{"room":"2301","type":"VB","const":5,"in":"○","big":1,"mid":0,"small":1,"infant":0,"mouth":2,"slippers":2,"toothbrush":5,"amenities":3,"samue":5,"towel":5,"notes":["子供セット ×1"]},{"room":"2302","type":"VA","const":4,"in":"○","big":1,"mid":0,"small":0,"infant":1,"mouth":1,"slippers":2,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["ベビーベッド ×1（テスト）","子供セット ×1"]},{"room":"2303","type":"VB","const":5,"in":"○","big":1,"mid":1,"small":0,"infant":0,"mouth":2,"slippers":2,"toothbrush":5,"amenities":3,"samue":5,"towel":5,"notes":["子供セット ×1"]},{"room":"2304","type":"VA","const":4,"in":"－","big":0,"mid":0,"small":0,"infant":0,"mouth":4,"slippers":4,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["N.C（テスト）"]},{"room":"2305","type":"VB","const":5,"in":"○","big":1,"mid":0,"small":0,"infant":1,"mouth":1,"slippers":2,"toothbrush":5,"amenities":3,"samue":5,"towel":5,"notes":["ベビーベッド ×1（テスト）","子供セット ×1"]},{"room":"2306","type":"VJS","const":2,"in":"○","big":1,"mid":0,"small":0,"infant":0,"mouth":1,"slippers":1,"toothbrush":2,"amenities":1,"samue":2,"towel":2,"notes":[]},{"room":"2307","type":"VF2","const":6,"in":"○","big":1,"mid":0,"small":1,"infant":0,"mouth":2,"slippers":2,"toothbrush":6,"amenities":3,"samue":6,"towel":6,"notes":["子供セット ×1"]},{"room":"2401","type":"VB","const":5,"in":"－","big":0,"mid":0,"small":0,"infant":0,"mouth":5,"slippers":5,"toothbrush":5,"amenities":3,"samue":5,"towel":5,"notes":["N.C（テスト）"]},{"room":"2402","type":"VA","const":4,"in":"○","big":1,"mid":1,"small":0,"infant":0,"mouth":2,"slippers":2,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["子供セット ×1"]},{"room":"2403","type":"VB","const":5,"in":"○","big":1,"mid":0,"small":1,"infant":0,"mouth":2,"slippers":2,"toothbrush":5,"amenities":3,"samue":5,"towel":5,"notes":["子供セット ×1"]},{"room":"2404","type":"VA","const":4,"in":"○","big":1,"mid":0,"small":0,"infant":1,"mouth":1,"slippers":2,"toothbrush":4,"amenities":2,"samue":4,"towel":4,"notes":["ベビーベッド ×1（テスト）","子供セット ×1"]},{"room":"2405","type":"VB","const":5,"in":"－","big":0,"mid":0,"small":0,"infant":0,"mouth":5,"slippers":5,"toothbrush":5,"amenities":3,"samue":5,"towel":5,"notes":["N.C（テスト）"]},{"room":"2406","type":"VJS","const":2,"in":"○","big":1,"mid":0,"small":0,"infant":0,"mouth":1,"slippers":1,"toothbrush":2,"amenities":1,"samue":2,"towel":2,"notes":[]},{"room":"2407","type":"VF1","const":6,"in":"○","big":1,"mid":0,"small":0,"infant":1,"mouth":1,"slippers":2,"toothbrush":6,"amenities":3,"samue":6,"towel":6,"notes":["ベビーベッド ×1（テスト）","子供セット ×1"]}]}};
+let current = "1";
+
+function goHome(){
+  document.getElementById("detail").classList.remove("active");
+  document.getElementById("home").classList.add("active");
+  window.scrollTo(0,0);
+}
+function openBuilding(id){
+  current=id;
+  document.getElementById("home").classList.remove("active");
+  document.getElementById("detail").classList.add("active");
+  render();
+  window.scrollTo(0,0);
+}
+function noteClass(notes){
+  if(notes.some(n=>n.includes("N.C") || n==="PD" || n==="CK")) return "notes yellow";
+  return "notes";
+}
+function card(r,theme){
+  const diff=r.mouth!==r.slippers;
+  return `
+  <article class="room ${theme}">
+    <div class="rtop">
+      <div>
+        <div class="roomno">${r.room}</div>
+        <div class="meta">タイプ ${r.type}　/　定数 ${r.const}</div>
+      </div>
+      <div class="inpill ${r.in==="○"?"on":"off"}">イン ${r.in}</div>
+    </div>
+
+    <div class="people">
+      <div class="pbox"><span>大</span><b>${r.big}</b></div>
+      <div class="pbox"><span>中</span><b>${r.mid}</b></div>
+      <div class="pbox"><span>小</span><b>${r.small}</b></div>
+      <div class="pbox"><span>幼</span><b>${r.infant}</b></div>
+    </div>
+
+    <div class="items">
+      <div class="item ${diff?"mouthdiff":""}"><span>お口</span><b>${r.mouth}</b></div>
+      <div class="item ${diff?"mouthdiff":""}"><span>スリッパ</span><b>${r.slippers}</b></div>
+      <div class="item"><span>歯ブラシ</span><b>${r.toothbrush}</b></div>
+      <div class="item"><span>アメニティ</span><b>${r.amenities}</b></div>
+      <div class="item"><span>サムエ</span><b>${r.samue}</b></div>
+      <div class="item"><span>タオルセット</span><b>${r.towel}</b></div>
+    </div>
+
+    ${r.notes.length ? `<div class="${noteClass(r.notes)}"><ul>${r.notes.map(n=>`<li>${n}</li>`).join("")}</ul></div>` : ""}
+  </article>`;
+}
+function render(){
+  const d=DATA[current];
+  document.getElementById("s1").classList.toggle("active", current==="1");
+  document.getElementById("s2").classList.toggle("active", current==="2");
+
+  const hc=document.getElementById("headcard");
+  hc.className=`headcard ${d.theme}`;
+  hc.innerHTML=`
+    <div class="headrow">
+      <div class="bname">${d.name}</div>
+      <div class="date">${d.date}</div>
+    </div>
+    <div class="stats">
+      <span class="stat out">OUT ${d.summary.out}</span>
+      <span class="stat stay">STAY ${d.summary.stay}</span>
+      <span class="stat ck">CK ${d.summary.ck}</span>
+    </div>`;
+  document.getElementById("rooms").innerHTML=d.rooms.map(r=>card(r,d.theme)).join("");
+}
+</script>
+</body>
+</html>

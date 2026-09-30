@@ -1,0 +1,9 @@
+{
+  "name": "cleaning-web-project",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build-demo.js",
+    "test": "node tests/check-data.js && node tests/check-public.js && node scripts/build-demo.js --check"
+  }
+}

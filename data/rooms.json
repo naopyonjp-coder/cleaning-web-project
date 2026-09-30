@@ -1,0 +1,264 @@
+{
+  "1": {
+    "name": "1号館",
+    "theme": "blue",
+    "rooms": [
+      {
+        "room": "1101",
+        "type": "VA",
+        "const": 4
+      },
+      {
+        "room": "1102",
+        "type": "VB",
+        "const": 5
+      },
+      {
+        "room": "1103",
+        "type": "VA",
+        "const": 4
+      },
+      {
+        "room": "1104",
+        "type": "VB",
+        "const": 5
+      },
+      {
+        "room": "1105",
+        "type": "VA",
+        "const": 4
+      },
+      {
+        "room": "1106",
+        "type": "VB",
+        "const": 5
+      },
+      {
+        "room": "1201",
+        "type": "VAU",
+        "const": 4
+      },
+      {
+        "room": "1202",
+        "type": "VB",
+        "const": 5
+      },
+      {
+        "room": "1203",
+        "type": "VA",
+        "const": 4
+      },
+      {
+        "room": "1204",
+        "type": "VB",
+        "const": 5
+      },
+      {
+        "room": "1205",
+        "type": "VA",
+        "const": 4
+      },
+      {
+        "room": "1206",
+        "type": "VF1",
+        "const": 6
+      },
+      {
+        "room": "1301",
+        "type": "VA",
+        "const": 4
+      },
+      {
+        "room": "1302",
+        "type": "VB",
+        "const": 5
+      },
+      {
+        "room": "1303",
+        "type": "VA",
+        "const": 4
+      },
+      {
+        "room": "1304",
+        "type": "VB",
+        "const": 5
+      },
+      {
+        "room": "1305",
+        "type": "VA",
+        "const": 4
+      },
+      {
+        "room": "1306",
+        "type": "VF1",
+        "const": 6
+      },
+      {
+        "room": "1401",
+        "type": "VSS",
+        "const": 5
+      },
+      {
+        "room": "1402",
+        "type": "VA",
+        "const": 4
+      },
+      {
+        "room": "1403",
+        "type": "VB",
+        "const": 5
+      },
+      {
+        "room": "1404",
+        "type": "VA",
+        "const": 4
+      },
+      {
+        "room": "1405",
+        "type": "VF1",
+        "const": 6
+      }
+    ]
+  },
+  "2": {
+    "name": "2号館",
+    "theme": "green",
+    "rooms": [
+      {
+        "room": "2101",
+        "type": "VB",
+        "const": 5
+      },
+      {
+        "room": "2102",
+        "type": "VA",
+        "const": 4
+      },
+      {
+        "room": "2103",
+        "type": "VB",
+        "const": 5
+      },
+      {
+        "room": "2104",
+        "type": "VA",
+        "const": 4
+      },
+      {
+        "room": "2105",
+        "type": "VB",
+        "const": 5
+      },
+      {
+        "room": "2106",
+        "type": "VJS",
+        "const": 2
+      },
+      {
+        "room": "2107",
+        "type": "VF2",
+        "const": 6
+      },
+      {
+        "room": "2201",
+        "type": "VAU",
+        "const": 4
+      },
+      {
+        "room": "2202",
+        "type": "VA",
+        "const": 4
+      },
+      {
+        "room": "2203",
+        "type": "VB",
+        "const": 5
+      },
+      {
+        "room": "2204",
+        "type": "VP",
+        "const": 4
+      },
+      {
+        "room": "2205",
+        "type": "VP",
+        "const": 4
+      },
+      {
+        "room": "2206",
+        "type": "VPS",
+        "const": 5
+      },
+      {
+        "room": "2301",
+        "type": "VB",
+        "const": 5
+      },
+      {
+        "room": "2302",
+        "type": "VA",
+        "const": 4
+      },
+      {
+        "room": "2303",
+        "type": "VB",
+        "const": 5
+      },
+      {
+        "room": "2304",
+        "type": "VA",
+        "const": 4
+      },
+      {
+        "room": "2305",
+        "type": "VB",
+        "const": 5
+      },
+      {
+        "room": "2306",
+        "type": "VJS",
+        "const": 2
+      },
+      {
+        "room": "2307",
+        "type": "VF2",
+        "const": 6
+      },
+      {
+        "room": "2401",
+        "type": "VB",
+        "const": 5
+      },
+      {
+        "room": "2402",
+        "type": "VA",
+        "const": 4
+      },
+      {
+        "room": "2403",
+        "type": "VB",
+        "const": 5
+      },
+      {
+        "room": "2404",
+        "type": "VA",
+        "const": 4
+      },
+      {
+        "room": "2405",
+        "type": "VB",
+        "const": 5
+      },
+      {
+        "room": "2406",
+        "type": "VJS",
+        "const": 2
+      },
+      {
+        "room": "2407",
+        "type": "VF1",
+        "const": 6
+      }
+    ]
+  }
+}
