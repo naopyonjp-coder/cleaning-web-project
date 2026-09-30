@@ -16,6 +16,13 @@ html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif}
 button{font:inherit}
+.today{display:block;margin-top:14px;font-size:17px;font-weight:850;color:var(--navy)}
+.languages{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+.languages button{min-height:44px;border:1px solid var(--line);border-radius:12px;background:white;color:var(--navy);font-weight:850;cursor:pointer}
+.languages button[aria-pressed="true"]{background:var(--navy);color:white}
+.languages button:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.item span{min-width:0;overflow-wrap:anywhere}.item b{flex-shrink:0}
+.navline .title{min-width:0;overflow-wrap:anywhere}.back{flex-shrink:0}
 .demo-notice{margin:0;padding:10px;border:1px solid #f4e0a0;border-radius:12px;background:var(--yellow-soft);color:var(--yellow);font-size:12px;line-height:1.5}
 .headrow{flex-wrap:wrap}
 .app{max-width:620px;margin:auto;min-height:100vh;padding:12px 12px 28px}
@@ -91,41 +98,46 @@ button{font:inherit}
 </head>
 <body>
 <div class="app">
-  <p class="demo-notice" role="note">表示確認用の架空データです。実際の清掃には使用しないでください。</p>
+  <p class="demo-notice" role="note" data-i18n="notice">表示確認用の架空データです。実際の清掃には使用しないでください。</p>
   <section id="home" class="view active home">
     <div class="top">
-      <h1>客室清掃指示書</h1>
-      <div class="sub">WEB版 · テストデータ</div>
+      <h1 data-i18n="heading">客室清掃指示書</h1>
+      <div class="sub" data-i18n="subtitle">WEB版 · テストデータ</div>
+      <time id="today" class="today" aria-live="polite"></time>
+      <div class="languages" role="group" aria-label="言語選択" data-i18n-aria="language">
+        <button id="lang-ja" lang="ja" onclick="setLanguage('ja')" aria-pressed="true" data-i18n="japanese">日本語</button>
+        <button id="lang-ne" lang="ne" onclick="setLanguage('ne')" aria-pressed="false" data-i18n="nepali">नेपाली</button>
+      </div>
       <div class="pick">
         <button class="pickbtn blue" onclick="openBuilding('1')">
-          <span>1号館 <span class="arrow">›</span></span>
+          <span><span data-i18n="building1">1号館</span><span class="arrow">›</span></span>
           <small>1101〜1405</small>
         </button>
         <button class="pickbtn green" onclick="openBuilding('2')">
-          <span>2号館 <span class="arrow">›</span></span>
+          <span><span data-i18n="building2">2号館</span><span class="arrow">›</span></span>
           <small>2101〜2407</small>
         </button>
       </div>
-      <div class="homefoot">見たい号館をタップしてください</div>
+      <div class="homefoot" data-i18n="chooseBuilding">見たい号館をタップしてください</div>
     </div>
   </section>
 
   <section id="detail" class="view detail">
     <div id="sticky" class="sticky">
       <div class="navline">
-        <button class="back" onclick="goHome()">‹ 戻る</button>
-        <div class="title">客室清掃指示書 WEB版</div>
+        <button class="back" onclick="goHome()" data-i18n="back">‹ 戻る</button>
+        <div class="title" data-i18n="title">客室清掃指示書 WEB版</div>
         <div style="width:44px"></div>
       </div>
       <div class="switch">
-        <button id="s1" class="blue" onclick="openBuilding('1')">1号館</button>
-        <button id="s2" class="green" onclick="openBuilding('2')">2号館</button>
+        <button id="s1" class="blue" onclick="openBuilding('1')" data-i18n="building1">1号館</button>
+        <button id="s2" class="green" onclick="openBuilding('2')" data-i18n="building2">2号館</button>
       </div>
-      <nav id="floors" class="floors" aria-label="階数選択">
-        <button onclick="jumpToFloor('1')">1階</button>
-        <button onclick="jumpToFloor('2')">2階</button>
-        <button onclick="jumpToFloor('3')">3階</button>
-        <button onclick="jumpToFloor('4')">4階</button>
+      <nav id="floors" class="floors" aria-label="階数選択" data-i18n-aria="floors">
+        <button onclick="jumpToFloor('1')" data-i18n="floor1">1階</button>
+        <button onclick="jumpToFloor('2')" data-i18n="floor2">2階</button>
+        <button onclick="jumpToFloor('3')" data-i18n="floor3">3階</button>
+        <button onclick="jumpToFloor('4')" data-i18n="floor4">4階</button>
       </nav>
     </div>
 
@@ -137,6 +149,75 @@ button{font:inherit}
 <script>
 const DATA = __DEMO_DATA__;
 let current = "1";
+const TEXT = {
+  ja: {heading:"客室清掃指示書",title:"客室清掃指示書 WEB版",subtitle:"WEB版 · テストデータ",
+    notice:"表示確認用の架空データです。実際の清掃には使用しないでください。",
+    language:"言語選択",japanese:"日本語",nepali:"नेपाली",building1:"1号館",building2:"2号館",
+    chooseBuilding:"見たい号館をタップしてください",back:"‹ 戻る",floors:"階数選択",
+    floor1:"1階",floor2:"2階",floor3:"3階",floor4:"4階",type:"タイプ",capacity:"定数",checkIn:"イン",
+    yes:"あり",no:"なし",adult:"大",middle:"中",child:"小",infant:"幼",mouth:"お口",slippers:"スリッパ",
+    toothbrush:"歯ブラシ",amenities:"アメニティ",samue:"サムエ",towel:"タオルセット",out:"OUT",stay:"STAY",ck:"CK",test:"テスト"},
+  ne: {heading:"कोठा सफाइ निर्देशन",title:"कोठा सफाइ निर्देशन · वेब संस्करण",subtitle:"वेब संस्करण · परीक्षण डेटा",
+    notice:"यो प्रदर्शन जाँचका लागि काल्पनिक डेटा हो। वास्तविक सफाइमा प्रयोग नगर्नुहोस्।",
+    language:"भाषा चयन",japanese:"जापानी",nepali:"नेपाली",building1:"भवन 1",building2:"भवन 2",
+    chooseBuilding:"हेर्न चाहेको भवन छुनुहोस्",back:"‹ फर्कनुहोस्",floors:"तला चयन",
+    floor1:"तला 1",floor2:"तला 2",floor3:"तला 3",floor4:"तला 4",type:"प्रकार",capacity:"मानक संख्या",checkIn:"आगमन",
+    yes:"छ",no:"छैन",adult:"वयस्क",middle:"ठूला बालबालिका",child:"साना बालबालिका",infant:"शिशु",mouth:"मुख सफाइ सामग्री",slippers:"चप्पल",
+    toothbrush:"दाँत माझ्ने ब्रस",amenities:"सुविधा सामग्री",samue:"समुए पोशाक",towel:"तौलिया सेट",out:"प्रस्थान",stay:"बसाइ जारी",ck:"सी के",test:"परीक्षण"}
+};
+let language="ja";
+try { const saved=localStorage.getItem('cleaning-web-language'); if(saved==='ja'||saved==='ne') language=saved; } catch (_) {}
+function t(key){return TEXT[language][key];}
+function translateType(type){
+  if(language==='ja') return type;
+  const letters={V:'भी',A:'ए',B:'बी',U:'यू',F:'एफ',S:'एस',J:'जे',P:'पी'};
+  return [...type].map(c=>letters[c]||c).join(' ');
+}
+function translateNote(note){
+  if(language==='ja') return note;
+  return note.replace(/子供セット/g,'बालबालिकाको सामग्री सेट')
+    .replace(/ベビーベッド/g,'शिशुको ओछ्यान').replace(/オムツ用ゴミ箱/g,'डाइपर फाल्ने डब्बा')
+    .replace(/エキストラ寝具/g,'अतिरिक्त ओछ्यान सामग्री').replace(/N\.C/g,'एन सी')
+    .replace(/CK/g,'सी के').replace(/PD/g,'पी डी').replace(/札/g,'चिन्ह')
+    .replace(/（テスト）/g,' (परीक्षण)');
+}
+function tokyoDateParts(now){
+  return Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tokyo',year:'numeric',month:'numeric',day:'numeric',weekday:'short'})
+    .formatToParts(now).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+}
+function formatToday(now,lang=language){
+  const p=tokyoDateParts(now);
+  const ja={Sun:'日',Mon:'月',Tue:'火',Wed:'水',Thu:'木',Fri:'金',Sat:'土'};
+  const ne={Sun:'आइतबार',Mon:'सोमबार',Tue:'मंगलबार',Wed:'बुधबार',Thu:'बिहीबार',Fri:'शुक्रबार',Sat:'शनिबार'};
+  return lang==='ne'?`${p.year} वर्ष ${p.month} महिना ${p.day} गते (${ne[p.weekday]})`:`${p.year}年${p.month}月${p.day}日（${ja[p.weekday]}）`;
+}
+let dateTimer;
+function updateToday(){
+  const now=new Date();
+  const p=tokyoDateParts(now);
+  const today=document.getElementById('today');
+  today.textContent=formatToday(now);
+  today.setAttribute('datetime',`${p.year}-${p.month.padStart(2,'0')}-${p.day.padStart(2,'0')}`);
+  clearTimeout(dateTimer);
+  // Schedule the next Japanese midnight, regardless of the device time zone.
+  const next=Date.parse(`${p.year}-${p.month.padStart(2,'0')}-${p.day.padStart(2,'0')}T00:00:00+09:00`)+86400000;
+  dateTimer=setTimeout(updateToday,Math.max(100,next-now.getTime()+100));
+}
+function applyLanguage(){
+  document.documentElement.lang=language;
+  document.title=`${t('title')} (${t('test')})`;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
+  document.querySelectorAll('[data-i18n-aria]').forEach(el=>{el.setAttribute('aria-label',t(el.dataset.i18nAria));});
+  for(const lang of ['ja','ne']) document.getElementById('lang-'+lang).setAttribute('aria-pressed',String(lang===language));
+  updateToday();
+}
+function setLanguage(lang){
+  if(lang!=='ja'&&lang!=='ne') return;
+  language=lang;
+  try {localStorage.setItem('cleaning-web-language',language);} catch (_) {}
+  applyLanguage();
+  if(document.getElementById('detail').classList.contains('active')) render();
+}
 
 function goHome(){
   document.getElementById("detail").classList.remove("active");
@@ -175,28 +256,28 @@ function card(r,theme){
     <div class="rtop">
       <div>
         <div class="roomno">${r.room}</div>
-        <div class="meta">タイプ ${r.type}　/　定数 ${r.const}</div>
+        <div class="meta">${t("type")} ${translateType(r.type)}　/　${t("capacity")} ${r.const}</div>
       </div>
-      <div class="inpill ${r.in==="○"?"on":"off"}">イン ${r.in}</div>
+      <div class="inpill ${r.in==="○"?"on":"off"}">${t("checkIn")} ${language==="ne"?t(r.in==="○"?"yes":"no"):r.in}</div>
     </div>
 
     <div class="people">
-      <div class="pbox"><span>大</span><b>${r.big}</b></div>
-      <div class="pbox"><span>中</span><b>${r.mid}</b></div>
-      <div class="pbox"><span>小</span><b>${r.small}</b></div>
-      <div class="pbox"><span>幼</span><b>${r.infant}</b></div>
+      <div class="pbox"><span>${t("adult")}</span><b>${r.big}</b></div>
+      <div class="pbox"><span>${t("middle")}</span><b>${r.mid}</b></div>
+      <div class="pbox"><span>${t("child")}</span><b>${r.small}</b></div>
+      <div class="pbox"><span>${t("infant")}</span><b>${r.infant}</b></div>
     </div>
 
     <div class="items">
-      <div class="item ${diff?"mouthdiff":""}"><span>お口</span><b>${r.mouth}</b></div>
-      <div class="item ${diff?"mouthdiff":""}"><span>スリッパ</span><b>${r.slippers}</b></div>
-      <div class="item"><span>歯ブラシ</span><b>${r.toothbrush}</b></div>
-      <div class="item"><span>アメニティ</span><b>${r.amenities}</b></div>
-      <div class="item"><span>サムエ</span><b>${r.samue}</b></div>
-      <div class="item"><span>タオルセット</span><b>${r.towel}</b></div>
+      <div class="item ${diff?"mouthdiff":""}"><span>${t("mouth")}</span><b>${r.mouth}</b></div>
+      <div class="item ${diff?"mouthdiff":""}"><span>${t("slippers")}</span><b>${r.slippers}</b></div>
+      <div class="item"><span>${t("toothbrush")}</span><b>${r.toothbrush}</b></div>
+      <div class="item"><span>${t("amenities")}</span><b>${r.amenities}</b></div>
+      <div class="item"><span>${t("samue")}</span><b>${r.samue}</b></div>
+      <div class="item"><span>${t("towel")}</span><b>${r.towel}</b></div>
     </div>
 
-    ${r.notes.length ? `<div class="${noteClass(r.notes)}"><ul>${r.notes.map(n=>`<li>${n}</li>`).join("")}</ul></div>` : ""}
+    ${r.notes.length ? `<div class="${noteClass(r.notes)}"><ul>${r.notes.map(n=>`<li>${translateNote(n)}</li>`).join("")}</ul></div>` : ""}
   </article>`;
 }
 function render(){
@@ -209,16 +290,20 @@ function render(){
   hc.className=`headcard ${d.theme}`;
   hc.innerHTML=`
     <div class="headrow">
-      <div class="bname">${d.name}</div>
-      <div class="date">${d.date}</div>
+      <div class="bname">${t("building"+current)}</div>
+      <div class="date">${language==="ne"?d.date.replace("（テスト）"," (परीक्षण)"):d.date}</div>
     </div>
     <div class="stats">
-      <span class="stat out">OUT ${d.summary.out}</span>
-      <span class="stat stay">STAY ${d.summary.stay}</span>
-      <span class="stat ck">CK ${d.summary.ck}</span>
+      <span class="stat out">${t("out")} ${d.summary.out}</span>
+      <span class="stat stay">${t("stay")} ${d.summary.stay}</span>
+      <span class="stat ck">${t("ck")} ${d.summary.ck}</span>
     </div>`;
   document.getElementById("rooms").innerHTML=d.rooms.map(r=>card(r,d.theme)).join("");
 }
+applyLanguage();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden) updateToday();});
+window.addEventListener('focus',updateToday);
+window.addEventListener('pageshow',updateToday);
 </script>
 </body>
 </html>
