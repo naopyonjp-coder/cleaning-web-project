@@ -17,7 +17,8 @@ for (const id of ['1', '2']) {
   for (const r of b.rooms) assert.deepEqual(Object.keys(r).sort(), ['const', 'room', 'type']);
   assert.deepEqual(data[id].rooms.map(r => r.room), b.rooms.map(r => r.room));
 }
-assert.deepEqual(fs.readdirSync(path.join(root, 'docs')).sort(), ['.nojekyll', 'index.html']);
+assert.deepEqual(fs.readdirSync(path.join(root, 'docs')).filter(x=>x!=='assets').sort(), ['.nojekyll', 'index.html']);
+if(fs.existsSync(path.join(root,'docs/assets'))) assert.deepEqual(fs.readdirSync(path.join(root,'docs/assets')),['ocr'],'only local OCR assets permitted');
 assert(html.includes('実際の清掃には使用しないでください'));
 // Exercise the existing navigation/rendering logic without network or private data.
 const elements = new Map();

@@ -2,6 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.join(__dirname, '..');
+const {confirmedQuantities}=require('../src/rules');
 
 function makeDemo() {
   // Only room inventory is read. Never read private/original or operational data.
@@ -17,16 +18,15 @@ function makeDemo() {
       const mouth = active ? big + mid + small : room.const;
       const kids = mid + small + infant;
       const notes = [];
+      const items=confirmedQuantities({...room,in:active?'○':'－',big,mid,small,infant}).items;
       if (!active) notes.push('N.C（テスト）');
       if (i === 1) notes.push('CK');
       if (i === 2) notes.push('PD');
       if (infant) notes.push('ベビーベッド ×1（テスト）');
-      if (kids) notes.push(`子供セット ×${kids}`);
+      if (kids) notes.push(`子供セット×${kids}`);
       return { room: room.room, type: room.type, const: room.const,
         in: active ? '○' : '－', big, mid, small, infant,
-        mouth, slippers: active ? mouth + infant : room.const,
-        toothbrush: room.const, amenities: Math.ceil(room.const / 2),
-        samue: room.const, towel: room.const, notes };
+        ...items, notes };
     });
     data[id] = { name: building.name, theme: building.theme, date: '2099/1/1（テスト）',
       summary: { out: rooms.filter(r => r.in === '○').length,
@@ -38,7 +38,7 @@ function makeDemo() {
 function makeHtml() {
   const template = fs.readFileSync(path.join(root, 'src/template.html'), 'utf8');
   if (template.split('__DEMO_DATA__').length !== 2) throw new Error('Template must have one data placeholder');
-  return template.replace('__DEMO_DATA__', JSON.stringify(makeDemo()));
+  return template.replace('__RULES_CODE__',fs.readFileSync(path.join(root,'src/rules.js'),'utf8')).replace('__DEMO_DATA__', JSON.stringify(makeDemo()));
 }
 if (require.main === module) {
   const html = makeHtml();

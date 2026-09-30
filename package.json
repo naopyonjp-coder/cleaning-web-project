@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "build": "node scripts/build-demo.js",
-    "test": "node tests/check-data.js && node tests/check-public.js && node tests/check-import.js && node scripts/build-demo.js --check"
+    "test": "node tests/check-rules.js && node tests/check-data.js && node tests/check-public.js && node tests/check-import.js && node scripts/build-demo.js --check"
+  },
+  "devDependencies": {
+    "tesseract.js": "7.0.0"
   }
 }

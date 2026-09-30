@@ -4,3 +4,6 @@ node_modules/
 test-results/
 playwright-report/
 *.zip
+
+# Local OCR preparation; image analysis is not enabled yet.
+docs/assets/ocr/

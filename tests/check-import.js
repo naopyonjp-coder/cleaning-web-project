@@ -21,7 +21,7 @@ assert.equal(run("getDraft('1').rooms.length"),23);
 assert.equal(run("getDraft('2').rooms.length"),27);
 assert.throws(()=>run("buildImport(getDraft('1'),'1')"));
 // Synthetic confirmed values are deliberately set, never inferred from missing input.
-run(`for(const id of ['1','2']) {const d=getDraft(id);d.photo='blob:synthetic';d.date='2099-01-01';d.out='0';d.stay='0';d.ck='0';for(const r of d.rooms){r.in='○';for(const k of ['big','mid','small','infant','amenities'])r[k]='0';}}`);
+run(`for(const id of ['1','2']) {const d=getDraft(id);d.photo='blob:synthetic';d.date='2099-01-01';d.out='0';d.stay='0';d.ck='0';for(const r of d.rooms){r.in='○';for(const k of ['big','mid','small','infant'])r[k]='0';r.verified=true;}}`);
 assert.equal(run("buildImport(getDraft('1'),'1').rooms.length"),23);
 assert.equal(run("buildImport(getDraft('2'),'2').rooms.length"),27);
 for(const invalid of ['', '-1','1.5','1e2','abc','9007199254740992']){
@@ -29,10 +29,18 @@ for(const invalid of ['', '-1','1.5','1e2','abc','9007199254740992']){
   assert.equal(run('checkedNumber(bad)'),null);
 }
 run("getDraft('1').rooms[0].big=''");
-assert.throws(()=>run("buildImport(getDraft('1'),'1')"),'blank is not converted to zero');
+assert.equal(run("buildImport(getDraft('1'),'1').rooms[0].big"),0,'confirmed blank people are zero');
+run("getDraft('1').rooms[0].verified=false");
+assert.throws(()=>run("buildImport(getDraft('1'),'1')"),'room must be checked even when numeric blanks count as zero');
+run("getDraft('1').rooms[0].verified=true");
 run("getDraft('1').rooms[0].big='2';getDraft('1').rooms[0].mid='1';getDraft('1').rooms[0].small='1';getDraft('1').rooms[0].infant='1'");
 assert.equal(run("buildImport(getDraft('1'),'1').rooms[0].mouth"),4);
 assert.equal(run("buildImport(getDraft('1'),'1').rooms[0].slippers"),5);
+assert.equal(run("buildImport(getDraft('1'),'1').rooms[0].notes[0].ja"),"子供セット×3");
+run("getDraft('1').rooms[0].overrides={slippers:'9',samue:'6'}");
+assert.equal(run("buildImport(getDraft('1'),'1').rooms[0].slippers"),9);
+assert.equal(run("buildImport(getDraft('1'),'1').rooms[0].towel"),6);
+run("getDraft('1').rooms[0].overrides={}");
 run("getDraft('1').date='2099-02-30'");
 assert.throws(()=>run("buildImport(getDraft('1'),'1')"));
 run("getDraft('1').date='2099-01-01';getDraft('1').rooms[0].noteJa='<img src=https://example.invalid/secret onerror=alert(1)>'");
@@ -64,6 +72,7 @@ run("choosePhoto({target:{files:[{type:'image/png',size:21*1024*1024}]}})");
 assert(document.getElementById('import-error').textContent.length>0);
 run("choosePhoto({target:{files:[{type:'image/png',size:100}]}})");
 assert.equal(revoked,1,'old local image URL revoked');
+assert.equal(run("getDraft('1').rooms.every(r=>!r.verified)"),true,'new photo requires all rooms to be rechecked');
 assert.deepEqual(writes,[['cleaning-web-language','ne']],'operational data never persisted');
 assert(!/\b(?:fetch|XMLHttpRequest|WebSocket|sendBeacon|indexedDB)\b/.test(script),'no network or operational persistence APIs');
 assert(html.includes("connect-src 'none'; form-action 'none'"));

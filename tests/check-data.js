@@ -23,8 +23,10 @@ for(const building of ['1','2']){
     assert.strictEqual(r.mouth,mouth,`お口 ${r.room}`);
     assert.strictEqual(r.slippers,slippers,`スリッパ ${r.room}`);
     const kids=r.mid+r.small+r.infant;
-    const kidNote=r.notes.find(n=>n.startsWith('子供セット ×'));
-    assert.strictEqual(kidNote, kids?`子供セット ×${kids}`:undefined,`子供セット ${r.room}`);
+    const kidNote=r.notes.find(n=>n.startsWith('子供セット×'));
+    for(const k of ['shaver','cotton','showerCap','hairbrush','bathrobe']) assert.strictEqual(r[k],r.const<=4?2:3,`${k} ${r.room}`);
+    assert(!Object.hasOwn(r,'amenities'),'no provisional aggregate amenity');
+    assert.strictEqual(kidNote, kids?`子供セット×${kids}`:undefined,`子供セット ${r.room}`);
   }
 }
 assert(!html.includes('ライフスタッフさん'),'unwanted notice present');
